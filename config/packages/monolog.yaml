@@ -1,0 +1,32 @@
+sentry:
+    register_error_listener: false
+
+monolog:
+    channels:
+      - api_client
+      - api_request
+    handlers:
+        main:
+            type: whatfailuregroup
+            members: [ file, sentry ]
+            channels: [ "!event", "!deprecation", "!cache", "!request", "!api_request" ]
+
+        # Stream
+        file:
+            type: stream
+            path: '%env(resolve:APP_LOG_TARGET)%'
+            level: '%env(APP_LOG_LEVEL)%'
+            formatter: 'monolog.formatter.json'
+
+        # Sentry
+        sentry:
+            type: sentry
+            level: warning
+            hub_id: Sentry\State\HubInterface
+
+        # Логирование API запросов и ответов сервиса
+        api_request:
+            type: stream
+            channels: [api_request]
+            path: "%env(resolve:APP_LOG_API_REQUEST_TARGET)%"
+            formatter: 'monolog.formatter.json'

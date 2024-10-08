@@ -1,0 +1,36 @@
+ingress:
+  custom:
+    domain: prov-adapter.k8s.uat2.test_corp
+
+istio:
+  httpsRedirect:
+    enabled: false
+  sidecar:
+    enabled: true
+  ingress:
+    enabled: true
+    custom:
+      enabled: true
+      domain: prov-adapter.k8s.uat2.test_corp
+
+env:
+  APP_ENV: prod
+  NGINX_SERVER_NAME: prov-adapter.k8s.uat2.test_corp
+
+  # Database
+  DATABASE_HOST: c-c9q98samdlq2h78riqn3.rw.mdb.yandexcloud.net
+  DATABASE_USER: prov_adapter
+
+  # PROVIDER
+  PROVIDER_API_URL: https://s00aptwebtst.corp.tander.ru/PROVIDER_cnt_test3_eshop_1851_hs_tst/hs
+  PROVIDER_VERIFY_PEER: false
+  PROVIDER_VERIFY_HOST: false
+
+  # Monolith
+  MONOLITH_API_URL: http://test.k8s.uat2.test_corp/api
+
+  PROMETHEUS_PUSH_GATEWAY_NAMESPACE: uat2
+
+  SNP_ADAPTER_GRPC_HOST: "test_corp-adapter-grpc.k8s.uat2.test_corp"
+
+cronjobs: null

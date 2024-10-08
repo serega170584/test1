@@ -1,0 +1,15 @@
+services:
+  test.failed_messages_service:
+    alias: App\Service\FailedMessagesService
+    public: true
+
+  test.PROVIDER.client:
+    alias: PROVIDER.client
+    public: true
+
+  test.monolith.PROVIDER.client:
+    alias: monolith.PROVIDER.client
+    public: true
+
+  App\Client\SnPAdapter\Client:
+    class: App\Tests\Support\Stub\StubSnPAdapterClient

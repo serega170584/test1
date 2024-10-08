@@ -1,0 +1,42 @@
+# see https://symfony.com/doc/current/reference/configuration/framework.html
+framework:
+    secret: '%env(APP_SECRET)%'
+    default_locale: '%locale%'
+    http_method_override: false
+
+    php_errors:
+        log: true
+
+    http_client:
+        default_options:
+            headers:
+                'User-Agent': 'prov Connector'
+                'Content-Type': 'application/json'
+                'Accept': 'application/json'
+        scoped_clients:
+            # УАС
+            PROVIDER.client:
+                base_uri: '%env(resolve:PROVIDER_API_URL)%'
+                auth_ntlm: '%env(resolve:PROVIDER_API_AUTH_NTLM)%'
+                timeout: 300
+                verify_peer: '%env(bool:PROVIDER_VERIFY_PEER)%'
+                verify_host: '%env(bool:PROVIDER_VERIFY_HOST)%'
+                retry_failed:
+                    max_retries: 1
+                    delay: 1000
+                #http_codes:
+                #    0: true
+                #    500: true
+                #    502: true
+                #    503: true
+
+            # Монолит
+            monolith.PROVIDER.client:
+                base_uri: '%env(resolve:MONOLITH_API_URL)%'
+                headers:
+                    'Authorization': 'Basic %env(resolve:MONOLITH_API_TOKEN)%'
+when@test:
+    framework:
+        test: true
+        #session:
+            #storage_factory_id: session.storage.factory.mock_file

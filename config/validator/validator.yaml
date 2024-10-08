@@ -1,0 +1,171 @@
+# v1
+App\Request\Dto\PROVIDER\v1\DivisionDto:
+  properties:
+    division:
+      - NotBlank: { message: 'division.invalid_id',  groups: ['full_import', 'Default'] }
+      - Positive: { message: 'division.positive_id',  groups: ['full_import', 'Default'] }
+      - Regex: { message: 'division.invalid_id', pattern: '/^\d+$/',  groups: ['full_import', 'Default'] }
+    items:
+      - Valid: ~
+      - Count: { minMessage: 'division.items.empty', min: 1}
+      - All:
+          - Type: App\Request\Dto\PROVIDER\v1\DivisionItemDto
+
+App\Request\Dto\PROVIDER\v1\DivisionItemDto:
+  properties:
+    code:
+      - NotBlank: { message: 'division.items.invalid_code' }
+      - Regex: { message: 'division.items.invalid_code', pattern: '/^\d+$/' }
+    quantity:
+      - NotBlank: { message: "division.items.invalid_quantity", groups: ['remains'] }
+      - PositiveOrZero: { message: 'division.items.invalid_quantity' }
+    price:
+      - NotBlank: { message: "division.items.invalid_price", groups: ['prices'] }
+      - Positive: { message: 'division.items.invalid_price' }
+
+App\Request\Dto\PROVIDER\v1\OrderDto:
+  constraints:
+    - Callback: [ App\Validator\OrderValidator, validate ]
+
+  properties:
+    status:
+      - NotBlank: { message: 'order.empty_status' }
+      - Choice: { message:  'order.invalid_status', callback: getStatuses }
+    typeOrder:
+      - NotBlank: { message: 'order.empty_type_order' }
+      - Choice: { message: 'order.invalid_type_order', callback: getTypes }
+    number:
+      - NotBlank: { message: 'order.empty_number' }
+      - Type: { message: 'order.invalid_number', type: numeric }
+    timeEdit:
+      - DateTime: { message: 'order.invalid_time', format: 'd.m.Y H:i:s' }
+    rows:
+      - Valid: ~
+      - All:
+          - Type: App\Request\Dto\PROVIDER\v1\OrderRowDto
+
+App\Request\Dto\PROVIDER\v1\OrderRowDto:
+  properties:
+    quantity:
+      - NotBlank: { message: 'order.rows.empty_quantity' }
+      - PositiveOrZero: { message: 'order.rows.invalid_quantity' }
+    reserved:
+      - NotBlank: { message: 'order.rows.empty_reserved', groups: ['status'] }
+      - PositiveOrZero: { message: 'order.rows.invalid_reserved', groups: ['status'] }
+    sum:
+      - NotBlank: { message: 'order.rows.empty_sum' }
+      - PositiveOrZero: { message: 'order.rows.invalid_sum' }
+    recipeConfirm:
+      - PositiveOrZero: { message: 'order.rows.invalid_recipe_confirm' }
+    markingCodes:
+      - All:
+          - Type: { message: 'order.rows.invalid_marking_codes', type: string }
+    product:
+      - NotBlank: { message: 'order.rows.product.empty' }
+      - Valid: ~
+      - Type: App\Request\Dto\PROVIDER\v1\OrderProductDto
+
+App\Request\Dto\PROVIDER\v1\OrderProductDto:
+  properties:
+    code:
+      - NotBlank: { message: 'order.rows.product.empty_code' }
+      - Type: { message: 'order.rows.product.invalid_code', type: numeric }
+    name:
+      - NotBlank: { message: 'order.rows.product.empty_name', groups: ['complete'] }
+
+App\Request\Dto\PROVIDER\v1\OrderReceiptDto:
+  properties:
+    order:
+      - NotBlank: { message: 'order.empty_number' }
+      - Type: { message: 'order.invalid_number', type: numeric }
+    type:
+      #- NotBlank: { message: 'order.empty_receipt_type' } есть, но со стороны УАС не передается
+      - Choice: { message: 'order.invalid_receipt_type', callback: getTypes }
+    #loyaltyCard:
+    #  - Valid: ~
+    #  - All:
+    #      - Regex: { message: 'order.cards.invalid_id', pattern: '/^\w{17}$/' }
+    rows:
+      - Valid: ~
+      - All:
+          - Type: App\Request\Dto\PROVIDER\v1\OrderRowDto
+
+# v2
+App\Request\Dto\PROVIDER\v2\OrderStatusesDto:
+  properties:
+    id:
+      - NotBlank: { message: 'request.invalid_id' }
+      - Uuid: { message: 'request.invalid_id' }
+    time:
+      - NotBlank: { message: 'request.invalid_time' }
+      - DateTime: { message: 'request.invalid_time', format: 'd.m.Y H:i:s' }
+    orders:
+      - Valid: ~
+      - All:
+        - Type: App\Request\Dto\PROVIDER\v2\OrderStatusDto
+
+App\Request\Dto\PROVIDER\v2\OrderStatusDto:
+  properties:
+    order:
+      - NotBlank: { message: 'order.empty_number' }
+      - Type: { message: 'order.invalid_number', type: numeric }
+    status:
+      - Choice: { message: 'order.invalid_status', callback: getStatuses }
+    date:
+      - DateTime: { message: 'order.invalid_time', format: 'd.m.Y H:i:s' }
+
+App\Request\Dto\PROVIDER\v2\OrderResultDto:
+  properties:
+    id:
+      - NotBlank: { message: 'request.invalid_id' }
+      - Uuid: { message: 'request.invalid_id' }
+    orderId:
+      - NotBlank: { message: 'order.empty_number' }
+      - Type: { message: 'order.invalid_number', type: numeric }
+
+App\Request\Dto\PROVIDER\v2\OrderDto:
+  constraints:
+    - Callback: [ App\Validator\OrderValidator, validate ]
+
+  getters:
+    id:
+      - NotBlank: { message: 'request.invalid_id' }
+      - Uuid: { message: 'request.invalid_id' }
+    status:
+      - NotBlank: { message: 'order.empty_status' }
+      - Choice: { message:  'order.invalid_status', callback: getStatuses }
+    typeOrder:
+      - NotBlank: { message: 'order.empty_type_order' }
+      - Choice: { message: 'order.invalid_type_order', callback: getTypes }
+    number:
+      - NotBlank: { message: 'order.empty_number' }
+      - Type: { message: 'order.invalid_number', type: numeric }
+    timeEdit:
+      - DateTime: { message: 'order.invalid_time', format: 'd.m.Y H:i:s' }
+    sid:
+      - Type: { message: 'order.invalid_sid', type: string }
+    rows:
+      - Valid: ~
+      - All:
+          - Type: App\Request\Dto\PROVIDER\v1\OrderRowDto
+
+App\Request\Dto\PROVIDER\v2\OrderReceiptDto:
+  getters:
+    id:
+      - NotBlank: { message: 'request.invalid_id' }
+      - Uuid: { message: 'request.invalid_id' }
+    order:
+      - NotBlank: { message: 'order.empty_number' }
+      - Type: { message: 'order.invalid_number', type: numeric }
+    type:
+      #- NotBlank: { message: 'order.empty_receipt_type' } есть, но со стороны УАС не передается
+      - Choice: { message: 'order.invalid_receipt_type', callback: getTypes }
+    # @todo настроить валидацию, когда карты лояльности будут использоваться
+    #loyaltyCard:
+    #  - Valid: ~
+    #  - All:
+    #      - Regex: { message: 'order.cards.invalid_id', pattern: '/^\w{17}$/' }
+    rows:
+      - Valid: ~
+      - All:
+          - Type: App\Request\Dto\PROVIDER\v1\OrderRowDto

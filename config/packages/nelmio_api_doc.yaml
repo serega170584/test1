@@ -1,0 +1,14 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: prov Connector
+            description: Сервис обработки остатков УАС и Евразия.
+            version: 1.0.0
+        components:
+            securitySchemes:
+                basic:
+                    type: http
+                    scheme: basic
+    areas: # to filter documented areas
+        path_patterns:
+            - ^/api/PROVIDER/(?!e\-shop)

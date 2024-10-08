@@ -1,0 +1,16 @@
+# Сообщения об ошибках
+VALIDATION_FAILED: 'Ошибка валидации'
+
+# Сообщения ответов
+response:
+  remains:
+    import_success: "Задание на импорт остатков добавлено в очередь"
+  orders:
+    status_success: "Информация о заказах успешно обработана"
+    complete_success: "Чек успешно обработан"
+    confirm_success: "Экспорт заказа подтвержден"
+    sync_status: "Заказы приняты в очередь"
+
+# Метрики
+metrics:
+  header: 'prov'

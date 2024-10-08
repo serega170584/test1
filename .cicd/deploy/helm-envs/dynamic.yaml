@@ -1,0 +1,48 @@
+replicaCount: 1
+
+env:
+  APP_ENV: prod
+
+  DATABASE_PORT: 5432
+  DATABASE_SSL: disable
+  # Адрес сервера базы данных
+  DATABASE_HOST: prov-adapter-postgresql
+
+  PROVIDER_API_URL: http://127.0.0.1
+  MONOLITH_API_URL: http://127.0.0.1
+
+  MESSENGER_AMQP_DSN: amqp://guest:guest@prov-adapter-rabbitmq:5672/%2f
+
+  PROMETHEUS_PUSH_GATEWAY_NAMESPACE: dynamic
+
+cronjobs: null
+
+postgresql:
+  enabled: true
+  global:
+    imageRegistry: "test/dockerhub"
+  image:
+    tag: 14-debian-11
+  primary:
+    service:
+      type: ClusterIP
+
+rabbitmq:
+  enabled: true
+  ingress:
+    enabled: true
+    ingressClassName: "istio"
+    pathType: Prefix
+    tls: false
+  global:
+    imageRegistry: "docker"
+  metrics:
+    serviceMonitor:
+      path: "/metrics/per-object"
+  resources:
+    limits:
+      memory: "700Mi"
+      cpu: null
+    requests:
+      memory: "700Mi"
+      cpu: "500m"

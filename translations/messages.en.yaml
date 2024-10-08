@@ -1,0 +1,16 @@
+# Сообщения об ошибках
+VALIDATION_FAILED: 'Validation failed'
+
+# Сообщения ответов
+response:
+  remains:
+    import_success: "Import remains completed successfully"
+  orders:
+    status_success: "The order statuses has been successfully processed"
+    complete_success: "The receipt has been processed successfully"
+    confirm_success: "Order export is confirmed"
+    sync_status: "Orders are queued"
+
+# Метрики
+metrics:
+  header: 'prov'

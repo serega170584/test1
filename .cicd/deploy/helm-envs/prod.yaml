@@ -1,0 +1,40 @@
+ingress:
+  certs: false
+  custom:
+    domain: prov-adapter.k8s.prod.test_corp
+
+istio:
+  httpsRedirect:
+    enabled: false
+  sidecar:
+    enabled: true
+  ingress:
+    enabled: true
+    custom:
+      enabled: true
+      domain: prov-adapter.k8s.prod.test_corp
+
+env:
+  APP_ENV: prod
+  NGINX_SERVER_NAME: prov-adapter.k8s.prod.test_corp
+  
+  # Database YC
+  DATABASE_HOST: c-c9q8f3n215vnkt84n97u.rw.mdb.yandexcloud.net
+  DATABASE_USER: prov_adapter_service
+
+  # PROVIDER
+  PROVIDER_API_URL: https://test_corp.corp.tander.ru/itm_eShop/hs
+  PROVIDER_VERIFY_PEER: false
+  PROVIDER_VERIFY_HOST: false
+
+  # Monolith
+  MONOLITH_API_URL: http://test.k8s.prod.test_corp/api
+
+  IS_ENABLED_FULL_IMPORT_COUNTER: true
+
+  IS_ENABLED_DISTRIBUTORS_RESERVES: true
+
+  PROMETHEUS_PUSH_GATEWAY_NAMESPACE: prod
+  IS_ENABLED_CRON_COMMAND_RETRY: true
+
+  SNP_ADAPTER_GRPC_HOST: "test_corp-adapter-grpc.k8s.prod.test_corp"

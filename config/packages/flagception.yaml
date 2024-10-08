@@ -1,0 +1,28 @@
+# See full configuration at https://github.com/bestit/flagception-bundle
+flagception:
+    features:
+        is_enabled_monolith_kafka:
+            env: IS_ENABLED_MONOLITH_KAFKA
+            default: false
+
+        is_enabled_delivery_to_customer:
+            env: IS_ENABLED_provCY_DELIVERY_TO_CUSTOMER
+            default: false
+
+        is_enabled_distributors_reserves:
+            env: IS_ENABLED_DISTRIBUTORS_RESERVES
+            default: false
+
+        is_enabled_cron_command_retry:
+            env: IS_ENABLED_CRON_COMMAND_RETRY
+            default: false
+
+        is_enabled_sending_to_snp:
+            env: IS_ENABLED_SENDING_TO_SNP
+            default: false
+
+        is_enabled_apply_items_discount:
+            env: IS_ENABLED_APPLY_ITEMS_DISCOUNT
+            default: false
+
+

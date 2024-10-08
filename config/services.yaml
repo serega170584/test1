@@ -1,0 +1,209 @@
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+    locale: '%env(resolve:APP_LOCALE)%'
+    projectDir: '%kernel.project_dir%'
+    passed_days_for_outdated_not_distributor_reserves: 1
+    passed_days_for_outdated_distributor_reserves: 11
+
+# For test env
+when@test:
+    parameters:
+        monolith.api_token: '%env(MONOLITH_API_TOKEN)%'
+
+services:
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        public: false
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+            - '../src/Tests/'
+            - '../src/Request/'
+            - '../src/Response/Result'
+            - '../src/Exception/'
+            - '../src/Response/'
+
+    App\Controller\:
+        resource: '../src/Controller'
+        tags: [ 'controller.service_arguments' ]
+
+    # Общие настройки сериализатора
+    Doctrine\Common\Annotations\AnnotationReader: ~
+    Symfony\Component\Serializer\Mapping\Loader\AnnotationLoader:
+        arguments:
+            $reader: '@Doctrine\Common\Annotations\AnnotationReader'
+
+    app.serializer.metadata_factory:
+        class: Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory
+        arguments:
+            $loader: '@Symfony\Component\Serializer\Mapping\Loader\AnnotationLoader'
+
+    app.serializer.metadata_converter:
+        class: Symfony\Component\Serializer\NameConverter\MetadataAwareNameConverter
+
+    # Нормализаторы данных УАС v1
+    App\Normalizer\PROVIDER\v1\DivisionDenormalizer:
+        tags: [ serializer.normalizer ]
+
+    App\Normalizer\PROVIDER\v1\OrderNormalizer:
+        tags: [ serializer.normalizer ]
+        arguments:
+            $classMetadataFactory: '@app.serializer.metadata_factory'
+            $nameConverter: '@app.serializer.metadata_converter'
+
+    App\Normalizer\PROVIDER\v1\OrderReceiptNormalizer:
+        tags: [ serializer.normalizer ]
+        arguments:
+            $classMetadataFactory: '@app.serializer.metadata_factory'
+            $nameConverter: '@app.serializer.metadata_converter'
+
+    # Нормализаторы данных УАС v2
+    App\Normalizer\PROVIDER\v2\OrderStatusesNormalizer:
+        tags: [ serializer.normalizer ]
+        arguments:
+            $classMetadataFactory: '@app.serializer.metadata_factory'
+            $nameConverter: '@app.serializer.metadata_converter'
+
+    App\Normalizer\PROVIDER\v2\OrderNormalizer:
+        tags: [ serializer.normalizer ]
+        arguments:
+            $classMetadataFactory: '@app.serializer.metadata_factory'
+            $nameConverter: '@app.serializer.metadata_converter'
+
+    App\Normalizer\PROVIDER\v2\OrderReceiptNormalizer:
+        tags: [ serializer.normalizer ]
+        arguments:
+            $classMetadataFactory: '@app.serializer.metadata_factory'
+            $nameConverter: '@app.serializer.metadata_converter'
+
+    App\Reader\ApiStoreReader: ~
+
+    # PROVIDER
+    App\Client\PROVIDER\ApiClient:
+        arguments:
+            $baseUri: '%env(resolve:PROVIDER_API_URL)%'
+            $httpClient: '@PROVIDER.client'
+
+    # Монолит
+    App\Client\Monolith\PROVIDER\ApiClient:
+        arguments:
+            $baseUri: '%env(resolve:MONOLITH_API_URL)%'
+            $httpClient: '@monolith.PROVIDER.client'
+
+    # Транспорт Кафка для мессенджера
+    test1\Messenger\Serialization\Serializer: ~
+    test1\Messenger\Transport\KafkaTransportFactory:
+        tags: [ messenger.transport_factory ]
+
+    # Сериализаторы для транспорта месенджера
+    messenger.serializer.v2.sync_order_statuses:
+        class: App\Messenger\Serializer
+        arguments:
+            $type: 'test1\Message\V2\SyncOrderStatuses'
+
+    messenger.serializer.v2.export_orders:
+        class: App\Messenger\Serializer
+        arguments:
+            $type: 'test1\Message\V2\ExportOrder'
+
+    # Процессоры лога
+    App\Logger\ValidationProcessor:
+        tags:
+            - { name: monolog.processor, handler: main }
+
+    App\Logger\ApiClientProcessor:
+        tags:
+            - { name: monolog.processor, handler: main }
+
+    App\Logger\AppProcessor:
+        tags:
+            - { name: monolog.processor }
+        arguments:
+            $appName: '%env(APP_NAME)%'
+
+    App\EventSubscriber\ApiRequestSubscriber:
+        arguments:
+            $logEnabled: '%env(bool:resolve:APP_LOG_API_REQUEST)%'
+
+    # Kэш
+    app.cache_provider:
+        class: Redis
+        factory: [ 'Symfony\Component\Cache\Adapter\RedisAdapter', 'createConnection' ]
+        arguments:
+            - '%env(CACHE_DSN)%'
+            - lazy: yes
+
+    app.cache_adapter:
+        class: Symfony\Component\Cache\Adapter\RedisAdapter
+        arguments:
+            - '@app.cache_provider'
+            - 'prov_metrics'
+
+    App\Service\OrderReserveManager:
+        arguments:
+            $removingDelay: '%env(resolve:APP_RESERVE_REMOVING_DELAY)%'
+            $passedDaysForOutdatedNotDistributorReserves: '%env(int:default:passed_days_for_outdated_not_distributor_reserves:PASSED_DAYS_FOR_OUTDATED_NOT_DISTRIBUTOR_RESERVES)%'
+            $passedDaysForOutdatedDistributorReserves: '%env(int:default:passed_days_for_outdated_distributor_reserves:PASSED_DAYS_FOR_OUTDATED_DISTRIBUTOR_RESERVES)%'
+
+    # lock service
+    \Symfony\Component\Lock\PersistingStoreInterface:
+        class: \Symfony\Component\Lock\Store\DoctrineDbalPostgreSqlStore
+        arguments:
+            - '@doctrine.dbal.default_connection'
+
+    Symfony\Component\Lock\LockFactory:
+        class: Symfony\Component\Lock\LockFactory
+        arguments:
+            - '@\Symfony\Component\Lock\PersistingStoreInterface'
+
+    App\Service\MinimalRemain\MinimalRemainManager:
+        arguments:
+            $isMinimalStockEnabled: '%env(bool:resolve:APP_MINIMAL_REMAIN_ENABLED)%'
+
+    App\Service\FailedMessagesService:
+        arguments:
+            $failedTransport: '@messenger.transport.failed'
+
+    app.prometheus_push_gateway:
+        class: PrometheusPushGateway\PushGateway
+        arguments:
+            - '%env(PROMETHEUS_PUSH_GATEWAY_HOST)%'
+
+    App\Command\MetricsPushingCommand:
+        arguments:
+            - '@app.prometheus_push_gateway'
+            - '@prometheus_metrics_bundle.collector_registry'
+            - '%env(PROMETHEUS_PUSH_GATEWAY_NAMESPACE)%'
+
+    app.predis_client:
+        class: Predis\Client
+        arguments:
+           - '%env(PREDIS_DSN)%'
+
+    App\Service\FullImportPROVIDERGoodsCountersService:
+        arguments:
+            - '@app.predis_client'
+
+
+    snp_adapter.credential:
+        class: Grpc\ChannelCredentials
+        factory: [App\Client\SnPAdapter\ChannelCredentialsSslFactory, 'create']
+        arguments:
+            $rootCert: '%env(MGNT_PLATFORM_CERT)%'
+
+    snp_adapter.pusher_service_client:
+        class: Platform\test_corp_adapter\PusherServiceClient
+        arguments:
+            $hostname: '%env(SNP_ADAPTER_GRPC_HOST)%'
+            $opts:
+                timeout: '%env(SNP_ADAPTER_GRPC_TIMEOUT)%'
+                credentials: '@snp_adapter.credential'
+
+    App\Client\SnPAdapter\GrpcClient:
+        arguments:
+            $pusherServiceClient: '@snp_adapter.pusher_service_client'

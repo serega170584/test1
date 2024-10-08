@@ -1,0 +1,62 @@
+version: '3.9'
+services:
+    db:
+        build:
+            context: ./docker/db
+            args:
+                POSTGRES_DB: ${DATABASE_NAME}
+        ports:
+            - "5432:5432"
+        environment:
+            POSTGRES_USER: ${DATABASE_USER}
+            POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+            POSTGRES_DB: ${DATABASE_NAME}
+
+    fpm:
+        image: prov-adapter-dev
+        build:
+            context: .
+            dockerfile: docker/web/Dockerfile
+            target: dev
+            args:
+                NGINX_UPSTREAM_ADDR: fpm
+                NGINX_SERVER_NAME: prov-connector.local
+                PHP_XDEBUG_MODE: debug
+                PHP_XDEBUG_CLIENT_PORT: 9003
+                PHP_XDEBUG_CLIENT_HOST: host.docker.internal
+        ports:
+            - "9000:9000"
+        volumes:
+            - .:/var/www:cached
+            - ${SSH_AUTH_SOCK}:${SSH_AUTH_SOCK}
+        depends_on:
+            - db
+#            - redis
+        environment:
+            SSH_AUTH_SOCK: ${SSH_AUTH_SOCK}
+            PHP_IDE_CONFIG: serverName=prov-connector.local
+            APP_LOG_TARGET: php://stdout
+
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+
+    nginx:
+        image: prov-adapter-dev
+        command: nginx
+        ports:
+            - "80:80"
+        volumes:
+            - ./docker/logs/nginx:/var/log/nginx:cached
+            - ./docker/logs/symfony:/var/www/var/log:cached
+        depends_on:
+            - fpm
+
+    redis:
+        image: redis:alpine
+        ports:
+            - "6379:6379"
+    rabbitmq:
+        image: rabbitmq:3.6-management-alpine
+        ports:
+            - "15672:15672"
+            - "5672:5672"

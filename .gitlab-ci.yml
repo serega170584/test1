@@ -1,0 +1,155 @@
+---
+include:
+  - project: test1online/shared/ci-template
+    ref: ${CI_TEMPLATE_VERSION}
+    file: pipelines/docker-helm-pipeline.yml
+
+.runner:shell-tags:
+  tags:
+    - test1
+    - shell
+
+.runner:docker-tags:
+  tags:
+    - docker
+    - ecom
+    - test1
+
+variables:
+  CHART_VERSION: $APP_CHART_VERSION
+  DOCKER_FILE: docker/web/Dockerfile
+
+stages:
+  - build
+  - tests
+  - review
+  - deploy-dev
+  - release
+  - deploy-uat
+  - deploy-prod
+  # - rollback
+
+build-image:
+  stage: build
+  variables:
+    DOCKER_TARGET: deploy
+    BUILD_EXTRA_ARGS: |
+      --build-arg SYMFONY_CLI_VERSION=4.23.2 
+      --build-arg CI_LIBS_TOKEN=${CI_LIBS_TOKEN}
+  extends:
+    - .build-image-kaniko
+    - .runner:docker-tags
+
+tests:
+  stage: tests
+  image:
+    name: "${BUILD_IMAGE}"
+    entrypoint: ["/bin/sh"]
+  services:
+    - name: test/dockerhub/library/redis:alpine
+      alias: redis
+    - name: test/dockerhub/library/postgres:12-alpine
+      alias: db
+      command:
+        - -c 
+        - fsync=off
+        - -c
+        - synchronous_commit=off
+        - -c
+        - full_page_writes=off
+        - -c
+        - max_connections=1000
+      variables:
+        POSTGRES_DB: prov-connector
+        POSTGRES_PASSWORD: symfony
+        POSTGRES_USER: symfony
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - pwd
+    - cd /var/www
+    - composer install
+    - bin/console doctrine:migrations:migrate
+    - ./vendor/bin/phpunit
+  tags:
+    - k8s
+
+review:
+  extends:
+    - .runner:docker-tags
+    - .review
+  needs:
+    - build-image
+  variables:
+    PGSQL_INIT: "true"
+    HELM_EXTRA_ARGS: "--values=.cicd/deploy/helm-envs/dynamic.yaml \
+      --set ingress.custom.domain=${CI_PROJECT_NAME}.${DEPLOY_NAMESPACE}.k8s.dev.test_corp \
+      --set istio.ingress.custom.domain=${CI_PROJECT_NAME}.${DEPLOY_NAMESPACE}.k8s.dev.test_corp \
+      --set rabbitmq.ingress.hostname=rabbitmq.${DEPLOY_NAMESPACE}.k8s.dev.test_corp"
+  after_script:
+    - !reference [.kubectl_get, postgresql_service]
+    - !reference [.kubectl_get, ingress]
+    - !reference [.notify, teams]
+
+stop_review:
+  extends:
+    - .runner:docker-tags
+    - .stop_review
+
+deploy-dev-k8s-static:
+  stage: deploy-dev
+  variables:
+    DEPLOY_NAMESPACE: ${CI_PROJECT_NAME}
+  extends:
+    - .runner:docker-tags
+    - .helm-common-deploy
+  needs:
+    - build-image
+  when: manual
+  only: null
+  environment:
+    name: dev
+  after_script:
+#    - !reference [.notify, teams]
+    - !reference [.kubectl_get, ingress]
+
+release:
+  extends:
+    - .runner:docker-tags
+    - .release
+  needs:
+    - build-image
+
+deploy-uat:
+  stage: deploy-uat
+  variables:
+    APP_VERSION: release-${CI_COMMIT_SHORT_SHA}
+  extends:
+    - .runner:docker-tags
+    - .helm-common-deploy
+  needs:
+    - release
+  only:
+    - master
+  environment:
+    name: uat
+  after_script:
+#    - !reference [.notify, teams]
+    - !reference [.kubectl_get, ingress]
+
+deploy-prod-k8s:
+  stage: deploy-prod
+  extends:
+    - .runner:docker-tags
+    - .helm-common-deploy
+  needs:
+    - release
+  when: manual
+  only:
+    - master
+  environment:
+    name: prod
+  variables:
+    APP_VERSION: release-${CI_COMMIT_SHORT_SHA}
+    MS_TEAMS_CHANNEL_WEBHOOK: ${MS_TEAMS_CHANNEL_WEBHOOK_PROD}
+    VAULT_AUTH_ROLE: ${CI_PROJECT_NAME}-protected

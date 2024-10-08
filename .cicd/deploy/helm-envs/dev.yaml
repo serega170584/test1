@@ -1,0 +1,36 @@
+ingress:
+  custom:
+    domain: test
+
+istio:
+  httpsRedirect:
+    enabled: false
+  sidecar:
+    enabled: true
+  ingress:
+    enabled: true
+    custom:
+      enabled: true
+      domain: prov-adapter.k8s.dev.test_corp
+
+env:
+  APP_ENV: prod
+  NGINX_SERVER_NAME: prov-adapter.k8s.dev.test_corp
+
+  # Database
+  DATABASE_HOST: test
+  DATABASE_USER: prov_adapter
+
+  # PROVIDER
+  PROVIDER_API_URL: http://prov-adapter.k8s.dev.test_corp/fakeapi/PROVIDER # https://ecommtest.corp.tander.ru/PROVIDER_cnt_test2_eshop_hs_tst/hs # 10.8.62.45  ecommtest.corp.tander.ru
+  PROVIDER_VERIFY_PEER: false
+  PROVIDER_VERIFY_HOST: false
+
+  # Monolith
+  MONOLITH_API_URL: http://test-test2.k8s.dev.test_corp/api
+
+  IS_ENABLED_DISTRIBUTORS_RESERVES: true
+
+  PROMETHEUS_PUSH_GATEWAY_NAMESPACE: dev
+
+cronjobs: null

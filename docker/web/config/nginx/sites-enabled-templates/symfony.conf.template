@@ -1,0 +1,83 @@
+upstream php-upstream {
+    server ${NGINX_UPSTREAM_ADDR}:9000;
+}
+
+server {
+    server_name ${NGINX_SERVER_NAME};
+    listen ${TRANSPORT_PORT};
+    root /var/www/public;
+
+    location /alive {
+        return 404;
+    }
+    location /ready {
+        return 404;
+    }
+
+    location /metrics {
+        return 404;
+    }
+
+    location / {
+        try_files $uri @rewriteapp;
+    }
+
+    location @rewriteapp {
+        rewrite ^(.*)$ /index.php/$1 last;
+    }
+
+    location ~ ^/index\.php(/|$) {
+        fastcgi_pass php-upstream;
+        fastcgi_split_path_info ^(.+\.php)(/.*)$;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param HTTPS off;
+    }
+}
+
+server {
+    server_name _;
+    listen 8001;
+
+    root /var/www/public;
+
+    location / {
+        try_files $uri @rewriteapp;
+    }
+
+    location @rewriteapp {
+        rewrite ^(.*)$ /index.php/$1 last;
+    }
+
+    location ~ ^/index\.php(/|$) {
+        fastcgi_pass php-upstream;
+        fastcgi_split_path_info ^(.+\.php)(/.*)$;
+        include fastcgi_params;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param HTTPS off;
+    }
+}
+
+server {
+    server_name _;
+    listen 9001;
+    listen 9003;
+    listen 9005;
+    listen 9007;
+    listen 9009;
+    listen 9011;
+    listen 9013;
+    listen 9015;
+    listen 9017;
+    listen 9019;
+    listen 9021;
+
+    location /alive {
+        return 200;
+    }
+    location /ready {
+        return 200;
+    }
+
+}

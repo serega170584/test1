@@ -1,0 +1,21 @@
+# API PROVIDER
+api.PROVIDER:
+    resource: "../src/Controller/Api/PROVIDER"
+    type: annotation
+    prefix: /api/PROVIDER
+    name_prefix: api.PROVIDER
+    format: json
+
+# Fake API PROVIDER
+fake_api.PROVIDER:
+    resource: "../src/Controller/FakeApi/PROVIDER"
+    type: annotation
+    prefix: /fakeapi/PROVIDER
+    name_prefix: fake_api.PROVIDER
+    format: json
+
+# APP
+app:
+    resource: "../src/Controller"
+    type: annotation
+    prefix: /

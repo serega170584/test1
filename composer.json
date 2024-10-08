@@ -1,0 +1,128 @@
+{
+    "type": "project",
+    "license": "proprietary",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": ">=8.1",
+        "ext-ctype": "*",
+        "ext-ftp": "*",
+        "ext-iconv": "*",
+        "artprima/prometheus-metrics-bundle": "^1.19",
+        "composer/package-versions-deprecated": "1.11.99.4",
+        "doctrine/annotations": "1.13.2",
+        "doctrine/doctrine-bundle": "2.5.7",
+        "doctrine/doctrine-migrations-bundle": "3.2.2",
+        "doctrine/orm": "2.11.2",
+        "flagception/flagception-bundle": "^4.3",
+        "friendsofsymfony/rest-bundle": "3.3.0",
+        "test1/kafka-messages": "2.7.0",
+        "test1/kafka-messenger": "1.0.3",
+        "test1/snp-grpc-client-php": "1.0.1",
+        "nelmio/api-doc-bundle": "v4.8.2",
+        "predis/predis": "v1.1.10",
+        "promphp/prometheus_push_gateway_php": "^1.1",
+        "sensio/framework-extra-bundle": "v6.2.6",
+        "sentry/sentry-symfony": "4.2.7",
+        "symfony/amqp-messenger": "v5.4.5",
+        "symfony/console": "v5.4.5",
+        "symfony/dotenv": "v5.4.5",
+        "symfony/event-dispatcher": "v5.4.3",
+        "symfony/flex": "v1.18.5",
+        "symfony/framework-bundle": "v5.4.6",
+        "symfony/http-client": "v5.4.5",
+        "symfony/lock": "^5.4",
+        "symfony/maker-bundle": "v1.38.0",
+        "symfony/messenger": "5.4.11",
+        "symfony/monolog-bundle": "v3.7.1",
+        "symfony/property-access": "v5.4.5",
+        "symfony/proxy-manager-bridge": "v5.4.6",
+        "symfony/runtime": "v5.4.5",
+        "symfony/security-bundle": "5.4.*",
+        "symfony/serializer": "v5.4.6",
+        "symfony/translation": "v5.4.6",
+        "symfony/twig-bundle": "v5.4.3",
+        "symfony/uid": "v5.4.3",
+        "symfony/validator": "v5.4.6",
+        "symfony/yaml": "v5.4.3",
+        "twig/twig": "v3.3.9",
+        "ext-grpc": "*"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": {
+            "*": "dist"
+        },
+        "sort-packages": true,
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true,
+            "symfony/flex": true,
+            "symfony/runtime": true
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "App\\Tests\\": "tests/"
+        }
+    },
+    "replace": {
+        "symfony/polyfill-ctype": "*",
+        "symfony/polyfill-iconv": "*",
+        "symfony/polyfill-php72": "*"
+    },
+    "scripts": {
+        "auto-scripts": {
+            "cache:clear": "symfony-cmd"
+        },
+	    "make-version": "printf \"parameters:\n  app.version: $(git describe --tags --always)\" > config/packages/version.yaml",
+        "post-install-cmd": [
+            "printf \"parameters:\n  app.version: $(git describe --tags --always)\" > config/packages/version.yaml",
+            "@auto-scripts"
+        ],
+        "post-update-cmd": [
+            "@auto-scripts"
+        ]
+    },
+    "conflict": {
+        "symfony/symfony": "*"
+    },
+    "extra": {
+        "symfony": {
+            "allow-contrib": false,
+            "require": "5.4.*"
+        }
+    },
+    "require-dev": {
+        "dama/doctrine-test-bundle": "^7.2",
+        "friendsofphp/php-cs-fixer": "v3.7.0",
+        "mockery/mockery": "1.5.0",
+        "phpstan/phpstan": "1.4.8",
+        "phpstan/phpstan-doctrine": "1.2.11",
+        "phpstan/phpstan-phpunit": "1.0.0",
+        "phpstan/phpstan-strict-rules": "1.1.0",
+        "phpstan/phpstan-symfony": "1.1.7",
+        "phpunit/phpunit": "9.5.18",
+        "symfony/browser-kit": "v5.4.3",
+        "symfony/css-selector": "v5.4.3",
+        "symfony/phpunit-bridge": "v6.0.3"
+    },
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://gitlab.test_corp/test1online/ecom/backend/libs/kafka-messenger.git"
+        },
+        {
+            "type": "git",
+            "url": "https://gitlab.test_corp/test1online/ecom/backend/libs/kafka-messages.git"
+        },
+        {
+            "type": "git",
+            "url": "https://gitlab.test_corp/test1online/ecom/backend/libs/snp-grpc-client-php.git"
+        }
+    ]
+}

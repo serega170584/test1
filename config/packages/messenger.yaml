@@ -1,0 +1,247 @@
+framework:
+    messenger:
+        serializer:
+            symfony_serializer:
+                format: json
+                #context: { }
+
+        failure_transport: failed
+
+        # See https://symfony.com/doc/5.4/messenger.html#middleware-for-doctrine
+        buses:
+            messenger.bus.default:
+                middleware:
+                    - 'App\Messenger\Middleware\DoctrineClearMiddleware'
+                    - 'App\Messenger\Middleware\MetricsMiddleware'
+                    - doctrine_ping_connection
+
+        transports:
+
+            failed:
+                dsn: '%env(MESSENGER_INTERNAL_QUEUES_DSN)%'
+                options:
+                    queue_name: failed
+
+            ######
+            # Внутренние очереди
+            ######
+
+            # При добавлении новой очереди в БД, добавить в список DatabaseQueuesCountMessagesMetricsCollector::QUEUE_NAMES
+
+            # Удаление резервов
+            remove_order_reserves:
+                dsn: '%env(MESSENGER_INTERNAL_QUEUES_DSN)%'
+                options:
+                    queue_name: remove_order_reserves
+
+            PROVIDER_goods_request:
+                dsn: '%env(MESSENGER_INTERNAL_QUEUES_DSN)%'
+                options:
+                    queue_name: PROVIDER_goods_request
+
+            PROVIDER_goods_process:
+                dsn: '%env(MESSENGER_INTERNAL_QUEUES_DSN)%'
+                options:
+                    queue_name: PROVIDER_goods_process
+
+            PROVIDER_prices_process:
+                dsn: '%env(MESSENGER_INTERNAL_QUEUES_DSN)%'
+                options:
+                    queue_name: PROVIDER_prices_process
+
+            ######
+            # V1
+            ######
+
+            # Очередь импорта остатков
+            import_remains:
+                dsn: '%env(MESSENGER_AMQP_DSN)%'
+                serializer: messenger.transport.symfony_serializer
+                options:
+                    queues:
+                        prov_import_remains_v1:
+                            binding_keys:
+                                - 'import-remain'
+                    exchange:
+                        name: 'prov_import_remains_v1'
+                        type: 'direct'
+
+            remains_import_kafka:
+                dsn: '%env(ECOM_KAFKA_SASL_DSN)%'
+                serializer: messenger.transport.symfony_serializer
+                options:
+                    topic_name: prov.remains.import
+                    topic_conf:
+                        request.required.acks: '0'
+                    kafka_conf:
+                        security.protocol: '%env(ECOM_KAFKA_SASL_PROTOCOL)%'
+                        sasl.username: '%env(ECOM_KAFKA_SASL_USER)%'
+                        sasl.password: '%env(ECOM_KAFKA_SASL_PASSWORD)%'
+                        sasl.mechanism: '%env(ECOM_KAFKA_SASL_MECHANISM)%'
+                        ssl.ca.location: '%env(ECOM_KAFKA_SASL_CERT)%'
+                    commit_async: true # асинхронная отправка
+
+            ######
+            # V2
+            ######
+            # Очередь синхронизации статусов с УАС
+            v2_sync_order_statuses:
+                dsn: '%env(MESSENGER_AMQP_DSN)%'
+                serializer: messenger.serializer.v2.sync_order_statuses
+                retry_strategy:
+                    max_retries: 4
+                    delay: 18000
+                    multiplier: 10
+                options:
+                    queues:
+                        prov_adapter.v2.orders.sync_statuses:
+                            binding_keys:
+                                - 'sync-order-statuses'
+                                - 'prov_adapter.v2.orders.sync_statuses'
+                    exchange:
+                        name: 'prov_adapter.v2.orders'
+                        type: 'direct'
+
+            orders_sync_statuses_kafka:
+                dsn: '%env(ECOM_KAFKA_SASL_DSN)%'
+                serializer: messenger.serializer.v2.sync_order_statuses
+                options:
+                    topic_name: prov.orders.sync_statuses
+                    topic_conf:
+                        request.required.acks: '-1'
+                    kafka_conf:
+                        group.id: 'prov_adapter'
+                        enable.auto.offset.store: 'false'
+                        auto.offset.reset: 'earliest'
+                        security.protocol: '%env(ECOM_KAFKA_SASL_PROTOCOL)%'
+                        sasl.username: '%env(ECOM_KAFKA_SASL_USER)%'
+                        sasl.password: '%env(ECOM_KAFKA_SASL_PASSWORD)%'
+                        sasl.mechanism: '%env(ECOM_KAFKA_SASL_MECHANISM)%'
+                        ssl.ca.location: '%env(ECOM_KAFKA_SASL_CERT)%'
+
+            # Очередь экспорта заказов внешним потребителям
+            v2_export_orders:
+                dsn: '%env(MESSENGER_AMQP_DSN)%'
+                serializer: messenger.serializer.v2.export_orders
+                retry_strategy:
+                    max_retries: 4
+                    delay: 18000
+                    multiplier: 10
+                options:
+                    queues:
+                        prov_adapter.v2.orders.export:
+                            binding_keys:
+                                - 'export-order'
+                                - 'prov_adapter.v2.orders.export'
+                    exchange:
+                        name: 'prov_adapter.v2.orders'
+                        type: 'direct'
+
+            orders_export_kafka:
+                dsn: '%env(ECOM_KAFKA_SASL_DSN)%'
+                serializer: messenger.serializer.v2.export_orders
+                options:
+                    topic_name: prov.orders.export
+                    topic_conf:
+                        request.required.acks: '-1'
+                    kafka_conf:
+                        group.id: 'prov_adapter'
+                        enable.auto.offset.store: 'false'
+                        auto.offset.reset: 'earliest'
+                        security.protocol: '%env(ECOM_KAFKA_SASL_PROTOCOL)%'
+                        sasl.username: '%env(ECOM_KAFKA_SASL_USER)%'
+                        sasl.password: '%env(ECOM_KAFKA_SASL_PASSWORD)%'
+                        sasl.mechanism: '%env(ECOM_KAFKA_SASL_MECHANISM)%'
+                        ssl.ca.location: '%env(ECOM_KAFKA_SASL_CERT)%'
+
+            # Очередь импорта заказов из УАС
+            v2_import_orders:
+                dsn: '%env(MESSENGER_AMQP_DSN)%'
+                serializer: messenger.transport.symfony_serializer
+                options:
+                    queues:
+                        prov_adapter.v2.orders.import_all:
+                            binding_keys:
+                                - 'import-order-all'
+                    exchange:
+                        name: 'prov_adapter.v2.orders'
+                        type: 'direct'
+
+            orders_import_kafka:
+                dsn: '%env(ECOM_KAFKA_SASL_DSN)%'
+                serializer: messenger.transport.symfony_serializer
+                options:
+                    topic_name: prov.orders.import
+                    topic_conf:
+                        request.required.acks: '0'
+                    kafka_conf:
+                        security.protocol: '%env(ECOM_KAFKA_SASL_PROTOCOL)%'
+                        sasl.username: '%env(ECOM_KAFKA_SASL_USER)%'
+                        sasl.password: '%env(ECOM_KAFKA_SASL_PASSWORD)%'
+                        sasl.mechanism: '%env(ECOM_KAFKA_SASL_MECHANISM)%'
+                        ssl.ca.location: '%env(ECOM_KAFKA_SASL_CERT)%'
+                    commit_async: true # асинхронная отправка
+
+            # Очередь изменения кол-ва остатков с учетом резервов
+            v2_change_remain_quantity:
+                dsn: '%env(MESSENGER_AMQP_DSN)%'
+                serializer: messenger.transport.symfony_serializer
+                options:
+                    queues:
+                        prov_adapter.v2.remains.change_quantity:
+                            binding_keys:
+                                - 'change-remain-quantity'
+                    exchange:
+                        name: 'prov_adapter.v2.remains'
+                        type: 'direct'
+
+            remains_change_quantity_kafka:
+                dsn: '%env(ECOM_KAFKA_SASL_DSN)%'
+                serializer: messenger.transport.symfony_serializer
+                options:
+                    topic_name: prov.remains.change_quantity
+                    topic_conf:
+                        request.required.acks: '0'
+                    kafka_conf:
+                        security.protocol: '%env(ECOM_KAFKA_SASL_PROTOCOL)%'
+                        sasl.username: '%env(ECOM_KAFKA_SASL_USER)%'
+                        sasl.password: '%env(ECOM_KAFKA_SASL_PASSWORD)%'
+                        sasl.mechanism: '%env(ECOM_KAFKA_SASL_MECHANISM)%'
+                        ssl.ca.location: '%env(ECOM_KAFKA_SASL_CERT)%'
+                    commit_async: true # асинхронная отправка
+
+            request_sync_order_statuses:
+                dsn: '%env(MESSENGER_AMQP_DSN)%'
+                options:
+                    queues:
+                        prov_adapter.v2.request_sync_order_statuses:
+                    exchange:
+                        name: 'prov_adapter.v2.request_sync_order_statuses'
+                        type: 'direct'
+
+            response_sync_order_statuses:
+                dsn: '%env(MESSENGER_AMQP_DSN)%'
+                retry_strategy:
+                    max_retries: 4
+                    delay: 18000
+                    multiplier: 10
+                options:
+                    queues:
+                        prov_adapter.v2.response_sync_order_statuses:
+                    exchange:
+                        name: 'prov_adapter.v2.response_sync_order_statuses'
+                        type: 'direct'
+
+        routing:
+            'test1\Message\V1\ImportRemain': import_remains
+            'test1\Message\V2\ImportOrderStatus': v2_import_orders
+            'test1\Message\V2\ImportOrder': v2_import_orders
+            'test1\Message\V2\ImportOrderReceipt': v2_import_orders
+            'test1\Message\V2\ChangeRemainQuantity': v2_change_remain_quantity
+            'test1\Message\V2\RequestSyncOrderStatuses': request_sync_order_statuses
+
+            # Внутренний роутинг
+            'App\Message\OrderReserveRemoving': remove_order_reserves
+            'App\Message\PROVIDERGoodsRequest': PROVIDER_goods_request
+            'App\Message\PROVIDERGoodsProcess': PROVIDER_goods_process
+            'App\Message\PROVIDERPricesProcess': PROVIDER_prices_process

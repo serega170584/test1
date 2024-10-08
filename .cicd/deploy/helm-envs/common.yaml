@@ -1,0 +1,328 @@
+replicaCount: 2
+
+image:
+  repository: test
+
+appVersion: ""
+appPort: 8000
+appName: prov-adapter
+
+ingress:
+  enabled: true
+  custom:
+    enabled: true
+
+env:
+  TRANSPORT_ADDRESS: "0.0.0.0"
+  TRANSPORT_PORT: "8000"
+  NGINX_UPSTREAM_ADDR: 127.0.0.1
+
+  ###> symfony/framework-bundle ###
+  APP_ENV: prod
+  APP_LOCALE: ru
+  APP_NAME: prov-adapter
+  ###< symfony/framework-bundle ###
+
+  # Database
+  DATABASE_USER: prov_adapter
+  DATABASE_NAME: prov_adapter
+  DATABASE_HOST: 
+  DATABASE_PORT: 6432
+  DATABASE_SSL: require
+
+
+  # Messenger transport
+  # RabbitMQ
+  MESSENGER_AMQP_DSN:
+
+  # Internal queues
+  MESSENGER_INTERNAL_QUEUES_DSN: doctrine://default
+
+  # Messenger (kafka)
+  # - MESSENGER_TRANSPORT_DSN: kafka://10.9.52.105:9092
+  # - MESSENGER_TOPIC_PREFIX: test-
+
+  # PROVIDER
+  PROVIDER_API_URL:
+  # S PROVIDER_API_AUTH_NTLM=user:password
+  PROVIDER_VERIFY_PEER: false # set true for prod
+  PROVIDER_VERIFY_HOST: false # set true for prod
+
+  # Monolith
+  MONOLITH_API_URL:
+  # S MONOLITH_API_TOKEN: 
+
+  ###> sentry/sentry-symfony ###
+  SENTRY_DSN: http://0ec82c0661f5411c9974d4b92f960113@sentry.dev.test_corp/2
+  ###< sentry/sentry-symfony ###
+
+  ###> artprima/prometheus-metrics-bundle ###
+  PROM_METRICS_DSN: apcu-or-redis://prov-adapter-redis-master:6379
+  ###< artprima/prometheus-metrics-bundle ###
+  PROMETHEUS_PUSH_GATEWAY_HOST: "pushgateway-prometheus-pushgateway.monitoring:9091"
+
+  # Кэш
+  CACHE_DSN: redis://prov-adapter-redis-master:6379
+
+  # Logger
+  APP_LOG_TARGET: php://stdout
+  APP_LOG_LEVEL: warning
+  APP_LOG_API_REQUEST: true
+  APP_LOG_API_REQUEST_TARGET: php://stdout
+
+  # Задержка перед удалением резервов в мс.
+  APP_RESERVE_REMOVING_DELAY: 180000
+
+  IS_ENABLED_provCY_DELIVERY_TO_CUSTOMER: false
+
+  # вкл/выкл счетчика полного импорта
+  IS_ENABLED_FULL_IMPORT_COUNTER: false
+
+  API_TEST_PASSWORD: pass
+  IS_ENABLED_CRON_COMMAND_RETRY: false
+
+  PREDIS_DSN: tcp://prov-adapter-redis-master:6379
+
+  MGNT_PLATFORM_CERT: "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUlGVENDQS8yZ0F3SUJBZ0lDRUFBd0RRWUpLb1pJaHZjTkFRRUxCUUF3Z1p3eEN6QUpCZ05WQkFZVEFsSlYKTVE4d0RRWURWUVFJREFaTmIzTmpiM2N4RHpBTkJnTlZCQWNNQmsxdmMyTnZkekVVTUJJR0ExVUVDZ3dMVFdGbgpibWwwSUVsdVl5NHhGakFVQmdOVkJBc01EVkJzWVhSbWIzSnRJSFZ1YVhReEdUQVhCZ05WQkFNTUVHTmhMbkJzCllYUm1iM0p0TG1OdmNuQXhJakFnQmdrcWhraUc5dzBCQ1FFV0UyRmtiV2x1UUhCc1lYUm1iM0p0TG1OdmNuQXcKSGhjTk1qSXdOakF5TVRJeE9ERTNXaGNOTWpjd05qQXhNVEl4T0RFM1dqQ0JsVEVMTUFrR0ExVUVCaE1DVWxVeApEekFOQmdOVkJBZ01CazF2YzJOdmR6RVVNQklHQTFVRUNnd0xUV0ZuYm1sMElFbHVZeTR4RmpBVUJnTlZCQXNNCkRWQnNZWFJtYjNKdElIVnVhWFF4SXpBaEJnTlZCQU1NR21sdWRHVnliV1ZrYVdGMFpTNXdiR0YwWm05eWJTNWoKYjNKd01TSXdJQVlKS29aSWh2Y05BUWtCRmhOaFpHMXBia0J3YkdGMFptOXliUzVqYjNKd01JSUNJakFOQmdrcQpoa2lHOXcwQkFRRUZBQU9DQWc4QU1JSUNDZ0tDQWdFQXROb3pqRVhBMWdNbFlBWlExK3JqRjFDcXk0NUJyVXAvClhkbHYvM0cvNVkrRHdGalZhUkwyS1N4dnVXTDUzN3VmNlcxN3JyVHY0cXl1bnpvMDhEcjloZXZlNlZKYVNoaC8KaWR5WWZ1OERkMkxKWU1tNDZQK0FaaGNvaVVBNk5RNFpoUEFIcXR6YTBlY24rZ2N1WStQSXdsTUViSFBuNWZRQQo4bGtxSjhIQ0NwUHJ1VDF3aTNUOFI2ZDBUQ3R0R2o3dzU2eE8zMlNpVy95d0NVVDBiTTV3MERiMnRYOXRidGdzCnkwc1dKVXBxZGxaQXJSTHl2REpQejdvMXZxa1c4Z1I4Tzk2bWp3Y1dEQ1dTNzdvRTRLcnFwSHVCNk50YzkvR0kKOUJwSTJmTGxFY2xHNUk1SUIrZVhFNWNFTDRFYjg1L055dVRpOSt4Tm9LWDF2a3FKRzkxelRYOHV6Zjk5bEdtbApIL0Q1UVQ3ZlVDOVdESVpMeEd5azl4ZWlwRnN4QkduYnF6UnhtanZWNWlwWU5VcTNUR0RoNDF6VEtjMWM2VVNXCnAvRStqbnBPWUFoYzdBRXFNUmtEYUphUTJ4VFd3QmJHZFJ3eUhBTm9kcmNSeGtVaTltdHNidjlSaGNEYnU1RlYKOVZDS1dFNGhFazZwVDhwSmhpa3RFQVFGN2lEMmdBaDcyNXJPUzV6c1lLNUl2di9TTlphc0FXdGVtMmhJSjJuWgphYWRlOTVYbERFS0tBdFpBdUVmaGc0K3JUY3ByZUN3QlZPVmRPK1pqT1NSR2NMSWIwd1JicmJ6OUo4dTlTT280Ck5lRGR6T3ErMFRhdUtBSHJYR2Z6OWZWVDd3YXNJMFhNRmFLK1NjUzVwcFIwSVdENmRJWCsxY3N3RkFqeVVkNGoKbTlpb2V6YjNBRGNDQXdFQUFhTm1NR1F3SFFZRFZSME9CQllFRk91KzdZT3N6Zk1VcVBuZ01EalZUaEhrdXltbwpNQjhHQTFVZEl3UVlNQmFBRk5RYU52R2VjdFJLNkFWZ2d4R3M3SUtJTkdrWU1CSUdBMVVkRXdFQi93UUlNQVlCCkFmOENBUUF3RGdZRFZSMFBBUUgvQkFRREFnR0dNQTBHQ1NxR1NJYjNEUUVCQ3dVQUE0SUVBUUNFWWFPdnE1RVYKVDF4K1BFTVY4TVorTlZ6OUtrVTIzLzhNRkoySGx1ZjNxMWdRa1diaTN3ZFFneTBTQjBPMUlqOEQ2WlBIOFZneApOVVRkTnc2RGNONHV2Mkt5OTdtbGtOZG1tYUpmbHYwempQM0lNaTVFTWJRV3kyVmZ3Nmt4Lzd6WHN0d3JzdFE2CktUMW9RdGN4YkpvNVIzV1ZTVmd5SW51ZlpnOTNBNUJLdEdtNEZwVEJ5ZEJkZHFUZC8rNDlHQUdxb3l2bnpPT24KWXF0Ylh4ZnMwK0JYMDlTb0N4OW9DZ3R4WjY2aTdWcXAyaXQrcEl2SWUyQkRXY09yS0JCc0tXZ014d1VQcnhheApZdm5lZjNSK1QvbzlXUU1vdGpUQ0twSGxJMWV4T3lOQ0NVOVNyWHpMZkxqSit1SjBhR0ZnRlJUV3RoNzQwaTUrCko1WDJVMDE5Q3FsdzNURG43dUxpRU1SSGdCc1F4ZzFZUmRvdmY3WGtLNVR3WFhTVFpUYjZQTUN6ZTFuZXVJQWwKKzNSZlRBRjhlVzlpS1U1K2RQYkY5SWR5b096eENhMDNhL3F0YUYrOWRTYWhlWVIwalZYNVRRUzhwMHlBdFhqSAphOUVvZXordjlmZ1VpKzk5WlN3VHJLVlpDNVVLeXR1MUdYUVRwKzRaZ1ZHWjdvcHc3YnBpS2RSS2p3TTNoZmUrCm5lQmZhVm1wVGJ5UlZvRC9tdWNDaS9tcXRaMmp2Q1JURGhnS3locGRTdC95bDJ4RDJKem13QzNDNVlGN0dpOEUKbDRRVktaeW4rNFVVTmpWK25jUHgyVk4vSGY1NmZZaTJUM0xLWENzRTRFeTVHMjUwWjdGREVyMTkwdXVzSzZqZQpoUkh4NWN1d1V0UTRQZVRuMzYxd2VJemg5Z01FWHpEcmsyTWhCRHhBTmVwZ2Zna05VT2FOZGJFUWFWbm9oVjNDCnlZSG5oM0pLeWg0TFk0RUxOVXJZWlhDNktWVm9BNGh6NnlSTS9LS2xBMWIrNVJ5OHN1ZnNZYnlYS2xFRzFNeDgKZU9HUnRUSlZhNDhUbUVzZXV2YWJuenR5Q3ArTW5JcWVEam1kbk55YlFoeXdXb2k2V0xzUVZUNE9RNVFuVDh0WQpHbk1uQTR0eWdhY25OK011dkx2b29pZ3hicEtVQjU3ZXJPVm01cVFtQUdDaUJ5OWFSYnNrU2x2eDdURW9pZ0ZUCnNnNE9jVmYweWdGRzJTWm9TSlE5MXQxUDRySmx2MzlwU2F4eHhvWnd0Sm5LdWh0N2FIUEhsSHhTSm5UejZZNncKSDZLWENUdEZjUXJIL0JQOUt3dkJRaGZ0TnZXdWNNQURPelpGZFB4S1g2bDBqWDQ1aXlISWFyZFB2VnJJMkRWVQpZdjVZKzA2dzJvMXJ5dHlKWVhQRUNIejJsMllxdHM1eHNaR1FVd2tmd1c1MWRERnR4S0dlbmc0MExhOGIwZlUrCkI3Vmd0VGg4ZkxjWGwwMTNXYWZvZ1gwcHJ4Tm1iZXN1dVJnOW9IZTNyb2ZxRDJ4S2RpcHZxYUtheHdZb0VVbEQKSkh4SUsyYXRzZVhGSTloT0Uxb0p6RWtpMlBCeFgwUUcwZk9YUUZVMEdVRDIzdkZDQmR0Ykovd3hjQnBSQXpKbgpOMkhnMXBYUlBoR0J0RzIwdGh3K1JmR1RQSVJhVmsxZ3Rpb1N2eFlqd1hZc1pKcnNGOFRnbHdobEhFbkxDWVdJCnhKdG5hTjN5RVJXc3VvQU1Lb0tQNVoyYVF5eEc4dmhuVCtoczVtRlpIaTlNUjd5eGV2eWJaWkNaNmFLQnltR24KbWFYWDVUZUlndDloCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0="
+  SNP_ADAPTER_GRPC_HOST: "test_corp-adapter-grpc.k8s.dev.test_corp"
+  SNP_ADAPTER_GRPC_TIMEOUT: 1
+  IS_ENABLED_SENDING_TO_SNP: true
+  IS_ENABLED_APPLY_ITEMS_DISCOUNT: true
+
+  metadata:
+  podAnnotations:
+    - 'traffic.sidecar.istio.io/excludeOutboundPorts: "6432,9092,9091,6379,5672"'
+
+############################################################################################
+resources:
+  limits:
+    memory: "128Mi"
+    cpu: null
+  requests:
+    memory: "128Mi"
+    cpu: "50m"
+
+debug:
+  port: 8001 # alive/ready пробы смотрят на debug порт
+
+########## Migrations #################
+# env from .values.env
+migrations:
+  enabled: true
+  command:
+    - php
+    - "bin/console"
+    - "doctrine:migrations:migrate"
+    - "--no-interaction"
+  resources:
+    limits:
+      memory: "500Mi"
+      cpu: null
+    requests:
+      memory: "500Mi"
+      cpu: "100m"
+
+########## Sidecars #################
+sidecar:
+  enabled: true
+  containers:
+    sidecar1: #Set sidecar name
+      name: php-fpm
+      workingDir: /var/www/public/
+      appPort: 9000
+      debugPort: 9001
+      command:
+        - "php-fpm"
+      resources:
+        limits:
+          memory: "512Mi"
+        requests:
+          memory: "512Mi"
+          cpu: "200m"
+    sidecar2: #Set sidecar name
+      name: export-orders
+      appPort: 9002
+      debugPort: 9003
+      command:
+        - sh
+        - -c
+        - "exec php bin/console messenger:consume v2_export_orders -q --memory-limit=192M"
+      resources:
+        limits:
+          memory: "224Mi"
+        requests:
+          memory: "224Mi"
+          cpu: "50m"
+    sidecar3: #Set sidecar name
+      name: order-statuses
+      appPort: 9004
+      debugPort: 9005
+      command:
+        - sh
+        - -c
+        - "exec php bin/console messenger:consume v2_sync_order_statuses -q --memory-limit=192M"
+      resources:
+        limits:
+          memory: "224Mi"
+        requests:
+          memory: "224Mi"
+          cpu: "50m"
+    sidecar4: #Set sidecar name
+      name: order-reserves
+      appPort: 9006
+      debugPort: 9007
+      command:
+        - sh
+        - -c
+        - "exec php bin/console messenger:consume remove_order_reserves -q --memory-limit=192M"
+      resources:
+        limits:
+          memory: "224Mi"
+        requests:
+          memory: "224Mi"
+          cpu: "50m"
+    sidecar5:
+      name: PROVIDER-prices-process-consumer
+      appPort: 9008
+      debugPort: 9009
+      command:
+        - sh
+        - -c
+        - "exec php bin/console messenger:consume PROVIDER_prices_process -q --memory-limit=512M"
+      resources:
+        limits:
+          memory: "544Mi"
+        requests:
+          memory: "544Mi"
+          cpu: "100m"
+    sidecar6:
+      name: metrics-collecting
+      appPort: 9010
+      debugPort: 9011
+      command:
+        - sh
+        - -c
+        - "exec php bin/console app:metrics:collecting"
+      resources:
+        limits:
+          memory: "128Mi"
+        requests:
+          memory: "128Mi"
+          cpu: "50m"
+    sidecar7: #Set sidecar name
+      name: response-sync-order-statuses
+      appPort: 9012
+      debugPort: 9013
+      command:
+        - sh
+        - -c
+        - "exec php bin/console messenger:consume response_sync_order_statuses -q --memory-limit=192M"
+      resources:
+        limits:
+          memory: "224Mi"
+        requests:
+          memory: "224Mi"
+          cpu: "50m"
+    sidecar8: #Set sidecar name
+      name: metrics-pushing
+      appPort: 9014
+      debugPort: 9015
+      command:
+        - sh
+        - -c
+        - "exec php bin/console app:metrics:pushing"
+      resources:
+        limits:
+          memory: "128Mi"
+        requests:
+          memory: "128Mi"
+          cpu: "50m"
+
+    sidecar9:
+      name: PROVIDER-goods-request-consumer-1
+      appPort: 9016
+      debugPort: 9017
+      command:
+        - sh
+        - -c
+        - "exec php bin/console messenger:consume PROVIDER_goods_request -q --memory-limit=512M"
+      resources:
+        limits:
+          memory: "544Mi"
+        requests:
+          memory: "544Mi"
+          cpu: "50m"
+
+    sidecar10:
+      name: PROVIDER-goods-request-consumer-2
+      appPort: 9018
+      debugPort: 9019
+      command:
+        - sh
+        - -c
+        - "exec php bin/console messenger:consume PROVIDER_goods_request -q --memory-limit=512M"
+      resources:
+        limits:
+          memory: "544Mi"
+        requests:
+          memory: "544Mi"
+          cpu: "50m"
+
+    sidecar11:
+      name: PROVIDER-goods-process-consumer
+      appPort: 9020
+      debugPort: 9021
+      command:
+        - sh
+        - -c
+        - "exec php bin/console messenger:consume PROVIDER_goods_process -q --memory-limit=512M"
+      resources:
+        limits:
+          memory: "544Mi"
+        requests:
+          memory: "544Mi"
+          cpu: "100m"
+
+########## Cronjob #################
+cronjobs:
+  - schedule: "0 22 * * *" # utc time!
+    enabled: true
+    name: "reserve-clear"
+    command:
+      - sh
+      - -c
+      - "exec php bin/console app:reserve:clear"
+    resources:
+      limits:
+        memory: "500Mi"
+        cpu: "200m"
+      requests:
+        memory: "500Mi"
+        cpu: "200m"
+  - schedule: "0 23 * * *" # utc time!
+    enabled: true
+    name: "PROVIDER-import-goods"
+    command:
+      - sh
+      - -c
+      - "exec php bin/console app:PROVIDER:import:goods"
+    resources:
+      limits:
+        memory: "192Mi"
+        cpu: "50m"
+      requests:
+        memory: "192Mi"
+        cpu: "50m"
+
+redis:
+  enabled: true
+  global:
+    imageRegistry: "test/dockerhub"
+  master:
+    resources:
+      limits:
+        memory: "700Mi"
+        cpu: null
+      requests:
+        memory: "500Mi"
+        cpu: "700m"

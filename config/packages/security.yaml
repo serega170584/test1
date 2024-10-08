@@ -1,0 +1,25 @@
+security:
+    enable_authenticator_manager: true
+    password_hashers:
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: plaintext
+    providers:
+        users_in_memory:
+            memory:
+                users:
+                    test: { password: '%env(API_TEST_PASSWORD)%', roles: [ 'ROLE_API_SERVICE_USER' ] }
+                    '%env(API_PROVIDER_TO_PA_USER)%': { password: '%env(API_PROVIDER_TO_PA_PASSWORD)%', roles: ['ROLE_API_PROVIDER_USER'] }
+    firewalls:
+        api_service:
+            pattern: ^/api/service
+            stateless: true
+            provider: users_in_memory
+            http_basic: ~
+        api_PROVIDER:
+            pattern: ^/api/PROVIDER/echo
+            stateless: true
+            provider: users_in_memory
+            http_basic: ~
+
+    access_control:
+        - { path: ^/api/service, roles: 'ROLE_API_SERVICE_USER' }
+        - { path: ^/api/PROVIDER/echo, roles: 'ROLE_API_PROVIDER_USER' }
